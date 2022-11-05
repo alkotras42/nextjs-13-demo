@@ -1,5 +1,6 @@
 import React from 'react';
 import {Todo} from '../../../typings';
+import {notFound} from 'next/navigation';
 
 export interface TodoPageProps {
   params: {
@@ -21,6 +22,10 @@ const fetchTodo = async (todoId: string) => {
 async function TodoPage({params: {todoId}}: TodoPageProps) {
   const todo = await fetchTodo(todoId);
 
+  if (!todo.id) {
+    return notFound();
+  }
+
   return (
     <div className='p-10 bg-yellow-200 border-2 m-2 shadow-lg'>
       <p>
@@ -32,7 +37,7 @@ async function TodoPage({params: {todoId}}: TodoPageProps) {
   );
 }
 
-export default TodoPage
+export default TodoPage;
 
 export async function generateStaticParams() {
   const res = await fetch('https://jsonplaceholder.typicode.com/todos');
