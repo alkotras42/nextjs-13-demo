@@ -7,13 +7,18 @@ export interface TodoPageProps {
   };
 }
 
-export const fetchTodo = async (todoId: string) => {
-  const res = await fetch(`https://jsonplaceholder.typicode.com/todos/${todoId}`);
+const fetchTodo = async (todoId: string) => {
+  const res = await fetch(`https://jsonplaceholder.typicode.com/todos/${todoId}`, {
+    // ISR
+    next: {
+      revalidate: 60,
+    },
+  });
   const todo: Todo = await res.json();
   return todo;
 };
 
-export default async function TodoPage({params: {todoId}}: TodoPageProps) {
+async function TodoPage({params: {todoId}}: TodoPageProps) {
   const todo = await fetchTodo(todoId);
 
   return (
@@ -22,9 +27,21 @@ export default async function TodoPage({params: {todoId}}: TodoPageProps) {
         #{todo.id}: {todo.title}
       </p>
       <p>Completed: {todo.completed ? 'Yes' : 'No'} </p>
-      <p className='border-t border-black mt-5 text-right'>
-        By User: {todo.userId}
-      </p>
+      <p className='border-t border-black mt-5 text-right'>By User: {todo.userId}</p>
     </div>
   );
+}
+
+export default TodoPage
+
+export async function generateStaticParams() {
+  const res = await fetch('https://jsonplaceholder.typicode.com/todos');
+  const todos: Todo[] = await res.json();
+
+  // Avoid rate limit by API
+  const trimmedTodos = todos.splice(0, 10);
+
+  return todos.map((todo) => ({
+    todoId: todo.id.toString(),
+  }));
 }
